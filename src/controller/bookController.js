@@ -9,9 +9,9 @@ const userModel = require("../models/userModel")
 
 const createBooks = async (req, res) => {
     try {
-        const token = req.headers["x-api-key"];
-        const tokenDecoded = jwt.verify(token, "projectGroup69-3",);
-        if (req.body.userId != tokenDecoded.userId) return res.status(403).send({ status: false, message: "you cannot  create book for any other user. so, enter your own user id with which you are logged in " })
+        // const token = req.headers["x-api-key"];
+        // const tokenDecoded = jwt.verify(token, "projectGroup69-3",);
+        // if (req.body.userId != tokenDecoded.userId) return res.status(403).send({ status: false, message: "you cannot  create book for any other user. so, enter your own user id with which you are logged in " })
            
         let { title, excerpt, userId, ISBN, category, subcategory, reviews, releasedAt } = req.body;
 
@@ -63,40 +63,40 @@ const createBooks = async (req, res) => {
 }
     //---------- Get API's -------//
 
-const getBooks = async function (req, res) {
-    try {
-        const filterByQuery = { isDeleted: false }
-        const  { userId, category, subcategory } = req.query;
-
-        if (userId || userId == "") {
-            if (!mongoose.Types.ObjectId.isValid(userId)) {
-                return res.status(400).send({ status: false, message: "please give valid userId" })
-            } else filterByQuery["userId"] = userId;
-        }
-        if (category || category == "") {
-            if (!validator.isValid(category)) {
-                return res.status(400).send({ status: false, message: "please enter valid category" })
+    const getBooks = async function (req, res) {
+        try {
+            const filterByQuery = { isDeleted: false }
+            const { userId, category, subcategory } = req.query;
+    
+            if (userId || userId == "") {
+                if (!mongoose.Types.ObjectId.isValid(userId)) {
+                    return res.status(400).send({ status: false, message: "please give valid userId" })
+                } else filterByQuery["userId"] = userId;
             }
-            filterByQuery["category"] = category;
-        }
-        if (subcategory || subcategory == "") {
-            if (!validator.isValid(subcategory)) {
-                return res.status(400).send({ status: false, message: "please enter valid category" })
+            if (category || category == "") {
+                if (!validator.isValid(category)) {
+                    return res.status(400).send({ status: false, message: "please enter valid category" })
+                }
+                filterByQuery["category"] = category;
             }
-            const subcategoryArr = subcategory.trim().split(",").map(subcategory => subcategory.trim())
-            filterByQuery["subcategory"] = subcategoryArr;
+            if (subcategory || subcategory == "") {
+                if (!validator.isValid(subcategory)) {
+                    return res.status(400).send({ status: false, message: "please enter valid category" })
+                }
+                const subcategoryArr = subcategory.trim().split(",").map(subcategory => subcategory.trim())
+                filterByQuery["subcategory"] = subcategoryArr;
+            }
+    
+            const books = await bookModel.find({ filterByQuery, isDeleted: false }).select({ title: 1, excerpt: 1, userID: 1, category: 1, releasedAt: 1, reviews: 1 }).sort({ title: 1 });
+    
+            if (books.length == 0) return res.status(404).send({ status: false, message: "books not found" });
+    
+            return res.status(200).send({ status: true, message: "Books list", data: books })
         }
-
-        const books = await bookModel.find({filterByQuery, isDeleted: false}).select({ title: 1, excerpt: 1, userID: 1, category: 1, releasedAt: 1, reviews: 1 }).sort({ title: 1 });
-
-        if (books.length == 0) return res.status(404).send({ status: false, message: "books not found" });
-
-        return res.status(200).send({ status: true, message: "Books list", data: books })
+        catch (error) {
+            return res.status(500).send({ status: false, message: error.message });
+        }
     }
-    catch (error) {
-        return res.status(500).send({ status: false, message: error.message });
-    }
-}
         //------------- Get Book By Id API's --------//
 
 const getBookById = async function (req, res) {

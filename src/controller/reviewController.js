@@ -21,7 +21,7 @@ const createReview = async function (req, res) {
         if (reviewedBy || reviewedBy == "") {
             if (!validator.isValid(reviewedBy))
                 return res.status(400).send({ status: false, message: "name of reviewer is required here." })
-        } else reviewedBy = "guest";
+        } 
         
         if(!reviewedAt) return res.status(400).send({status: false, message : "Please enter reviewedAt."})
 
@@ -36,7 +36,6 @@ const createReview = async function (req, res) {
         // -----  validation rating range 1 to 5 -----//
         if (!/[1-5]/.test(rating))
             return res.status(400).send({ status: false, message: "please enter rating between 1 to 5" })
-
 
         const updatedBook = await bookModel.findByIdAndUpdate(req.params.bookId, { $inc: { reviews: 1 } }, { new: true }).lean();
 
@@ -124,11 +123,11 @@ const deleteByreviewId = async (req, res) => {
 
         let isExistsReview = await reviewModel.findOne({ _id: reviewId, isDeleted: false });
 
-        if (!isExistsReview) return res.status(400).send({ status: false, message: "Reviwe does not exists." });
+        if (!isExistsReview) return res.status(404).send({ status: false, message: "Reviwe does not exists." });
 
         let isExistsBook = await bookModel.findOne({ _id: bookId, isDeleted: false });
 
-        if (!isExistsBook) return res.status(400).send({ status: false, message: "Book does not exists." });
+        if (!isExistsBook) return res.status(404).send({ status: false, message: "Book does not exists." });
 
         //---------------- Review Document already delete or not ---------//
 

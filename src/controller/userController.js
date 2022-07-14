@@ -14,11 +14,12 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "No data found, please provide" })
 
         if (!validator.isValid(name))
-            return res.status(400).send({ status: false, message: "user's name is required." })
+            return res.status(400).send({ status: false, message: "user's name is required.(In string)" })
 
 
         if (!validator.isValid(email))
             return res.status(400).send({ status: false, message: "email id is required." })
+
         if (!validator.isValidEmail(email))
             return res.status(400).send({ status: false, message: "Please provide a valid email e.g. example@example.com" })
         const usedEmail = await userModel.findOne({ email })
@@ -30,8 +31,6 @@ const createUser = async function (req, res) {
         const usedPhone = await userModel.findOne({ phone })
         if (usedPhone)
             return res.status(400).send({ status: false, message: "mobile number already exists. Please provide another mobile number" })
-
-
 
         if (!validator.isValid(title))
             return res.status(400).send({ status: false, message: "title is required...!" })
@@ -62,7 +61,7 @@ const createUser = async function (req, res) {
         if (address.pincode) {
             re = /^[0-9]{1,6}$/
             if (!re.test(address.pincode)) {
-                return res.status(400).send({ status: false, message: "please enter valid pincode" })
+                return res.status(400).send({ status: false, message: "please enter valid pincode. it must be of 6 digit" })
             }
 
         }
@@ -73,15 +72,14 @@ const createUser = async function (req, res) {
 
         const createData = await userModel.create(userData);
 
-        res.status(201).send({ status: true, message: "user created successfully", data: createData });
+       return res.status(201).send({ status: true, message: "user created successfully", data: createData });
 
 
     } catch (err) {
-        res.status(500).send({ status: false, message: err.message });
+       return res.status(500).send({ status: false, message: err.message });
     }
 }
-        
-    // ------ Loging  API's-----//  
+// ------ Loging  API's-----//  
 const userLogin = async function (req, res) {
     try {
         if (Object.keys(req.body).length == 0) {
