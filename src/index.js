@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(multer().any());
 
 const url =
-  "mongodb+srv://harsh-developer:aA12345678@cluster0.lxbes.mongodb.net/group22Database?retryWrites=true&w=majority";
+  "mongodb+srv://shivanandkasture:GrjERPPxK02MvUW6@cluster0.a35v6.mongodb.net/ShivanandKasture-DB?retryWrites=true&w=majority";
 mongoose
   .connect(url, { useNewUrlParser: true })
   .then(() => console.log("mongoDb is connected"))

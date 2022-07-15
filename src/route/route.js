@@ -5,27 +5,20 @@ const {createReview,updateReview,DeleteBookReview } = require('../controller/rev
 const {registerUser,login}=require('../controller/userController')
 
 const {authentication,authorisation} = require('../middleware/auth')
+//============================user api================================//
+router.post('/register',registerUser)     
+router.post('/login',login)               
+//============================book api================================//
+router.post('/books', createBooks)       
+router.get('/books',authentication,getBook)                  
+router.get('/books/:bookId',authentication,getBookbyparams)     
+router.put('/books/:bookId',authentication,authorisation ,updateBook)          
+router.delete('/books/:bookId',authentication,authorisation,deletebookbyid)         
 
-
-
-
-
-// All routes
-// user
-router.post('/register',registerUser)     // test perfect
-router.post('/login',login)               // test perfect
-
-//book
-router.post('/books', authentication, createBooks)       // test perfect
-router.get('/books',authentication,getBook)                  // test perfect
-router.get('/books/:bookId',authentication,getBookbyparams)     //test perfect
-router.put('/books/:bookId',authentication,authorisation ,updateBook)          //test perfect
-router.delete('/books/:bookId',authentication,authorisation,deletebookbyid)         //test perfect
-
-//review
-router.post('/books/:bookId/review',createReview)     //test perfect
-router.put('/books/:bookId/review/:reviewId',updateReview)      //test perfect
-router.delete('/books/:bookId/review/:reviewId',DeleteBookReview)     //test perfect
+//============================review api================================//
+router.post('/books/:bookId/review',createReview)     
+router.put('/books/:bookId/review/:reviewId',updateReview)      
+router.delete('/books/:bookId/review/:reviewId',DeleteBookReview)     
 
 
 

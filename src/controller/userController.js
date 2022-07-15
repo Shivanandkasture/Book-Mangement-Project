@@ -1,88 +1,127 @@
-const usersModel = require("../model/usersModel")
+const userModel = require("../model/usersModel")
 const jwt = require('jsonwebtoken');
-const {isValid, nameRegex ,mailRegex,regexNumber ,regexPin,passRegex} = require('../validation/validation')
+
 
 
 
 // user Register APi
 const registerUser = async function (req, res) {
     try {
-        const {title , name ,phone ,email ,password,address } = req.body
-      
-        if (Object.keys(req.body).length == 0) return res.status(400).send({ status: false, message: 'Please enter details for user registration.' })
+        let { name, title, phone, email, password, address } = req.body
 
-        if (!title) return res.status(400).send({ status: false, msg: "Title is required for user registration." })
 
-        if (!(["Mr", "Mrs", "Miss"].indexOf(title) !== -1)) {
-            return res.status(400).send({ status: false, msg: "Title should be from these options only- Mr, Mrs, Miss" })
+        if (Object.keys(req.body).length == 0)
+            return res.status(400).send({ status: false, message: "No data found, please provide" })
+
+        if (!validator.isValid(name))
+            return res.status(400).send({ status: false, message: "user's name is required.(In string)" })
+
+
+        if (!validator.isValid(email))
+            return res.status(400).send({ status: false, message: "email id is required." })
+
+        if (!validator.isValidEmail(email))
+            return res.status(400).send({ status: false, message: "Please provide a valid email e.g. example@example.com" })
+        const usedEmail = await userModel.findOne({ email })
+        if (usedEmail)
+            return res.status(400).send({ status: false, message: "Email id already exists. Please use another email id." })
+
+        if (!validator.isValid(phone)) return res.status(400).send({ status: false, message: " phone no is required." })
+        if (!validator.isValidMobile(phone)) return res.status(400).send({ status: false, message: "Please provide a valid phone number (must be in 10 digit)" })
+        const usedPhone = await userModel.findOne({ phone })
+        if (usedPhone)
+            return res.status(400).send({ status: false, message: "mobile number already exists. Please provide another mobile number" })
+
+        if (!validator.isValid(title))
+            return res.status(400).send({ status: false, message: "title is required...!" })
+        if (!validator.isValidTitle(title))
+            return res.status(400).send({ status: false, message: "Invalid request parameters in the title, It should be Mr, Mrs, Miss" })
+
+
+        if (!validator.isValid(password))
+            return res.status(400).send({ status: false, message: "password is required...!" })
+        if (!validator.isValidPassword(password))
+            return res.status(400).send({ status: false, message: "enter password between 8-15 range,and it should contain one uppercase ,one lowercase and one special character" })
+
+        if (Object.keys(address).length == 0) {
+            return res.status(400).send({ status: false, message: "please enter city ,street, pincode" })
         }
-
-        if (!(name && isValid(name))) return res.status(400).send({ status: false, msg: 'Name is required for user registration.' })
-
-        if (!(nameRegex.test(name))) return res.status(400).send({ status: false, msg: 'Please enter valid characters only in name.' })
-
-        if (!phone) return res.status(400).send({ status: false, msg: 'Phone number is required for user registration.' })
-
-        if (!isValid(phone)) return res.status(400).send({ status: false, msg: "Phone number can't be blank or without strig." })
-        
-        if (!(regexNumber.test(phone))) return res.status(400).send({ status: false, msg: "Mobile Number must 10 digit only." })
-
-        let phoneCheck = await usersModel.findOne({ phone: phone })
-        if (phoneCheck) return res.status(400).send({ status: false, msg: "This phone number is already registered." })
-
-        if (!email) return res.status(400).send({ status: false, msg: "Email is required for user registration." })
-        
-        if (!(mailRegex.test(email))) return res.status(400).send({ status: false, msg: 'Please enter valid email id to register.' })
-
-        let mailCheck = await usersModel.findOne({ email: email })
-        if (mailCheck) return res.status(400).send({ status: false, msg: "This email is already registered." })
-
-        if (!password) return res.status(400).send({ status: false, msg: 'Password is required for privacy.' })
-
-        if (!(passRegex.test(password))) return res.status(400).send({ msg: "Please enter a password which contains min 8 and maximum 15 letters,upper and lower case letters and a number" })
-
-        if(Array.isArray(address) )  return res.status(400).send({ status: false, msg: " address is in Object format." })
-
-        if (!isValid(address.city )) return res.status(400).send({ status: false, msg: "Please enter city." })
-        
-        if (!isValid( address.pincode)) return res.status(400).send({ status: false, msg: "Please enter pincode " })
-        
-        if (!isValid(address.street)) return res.status(400).send({ status: false, msg: " Enter proper street name." })
-        
         if (address.city) {
-            if (!nameRegex.test(address.city)) return res.status(400).send({ status: false, msg: "Please enter city in alphabet" })
+            if (!validator.isValid(address.city)) {
+                return res.status(400).send({ status: false, message: "please enter valid city name" })
+            }
+
+        }
+        if (address.street) {
+            if (!validator.isValid(address.street)) {
+                return res.status(400).send({ status: false, message: "please enter valid street name" })
+            }
+
         }
         if (address.pincode) {
-            if (!regexPin.test(address.pincode)) return res.status(400).send({ status: false, msg: "Please enter pincode in number or only 6 digit" })
+            re = /^[0-9]{1,6}$/
+            if (!re.test(address.pincode)) {
+                return res.status(400).send({ status: false, message: "please enter valid pincode. it must be of 6 digit" })
+            }
+
         }
-        let registerNow = await usersModel.create(req.body)
-        res.status(201).send({ status: true, data: registerNow })
+        let userData = {}
+        if (Object.keys(address).length == 0) {
+            userData = { name, title, phone, email, password }
+        } else userData = { name, title, phone, email, password, address }
+
+        const createData = await userModel.create(userData);
+
+       return res.status(201).send({ status: true, message: "user created successfully", data: createData });
+
+
+    } catch (err) {
+       return res.status(500).send({ status: false, message: err.message });
     }
-    catch (err) {res.status(500).send({ status: false, msg: err.message })}
 }
 
 // Login
 const login = async (req, res) => {
 
     try {
-        const { email, password } = req.body;
+        if (Object.keys(req.body).length == 0) {
+            return res.status(400).send({ status: false, message: "please enter emailId and password" })
+        }
+        let userName = req.body.email;
+        if (!userName)
+            return res.status(400).send({ status: false, message: 'please enter emailId' });
 
-        if (!email || !password) return res.status(400).send({ status: false, message: "Please Fill All Required* Fields" });
+        let password = req.body.password;
+        if (!password)
+            return res.status(400).send({ status: false, message: 'please enter password' });
 
-        if (!mailRegex.test(email)) return res.status(400).send({ status: false, message: "Please fill a valid emailId " })
+        let finduser = await userModel.findOne({
+            email: userName,
+            password: password,
+        });
+        if (!finduser)
+            return res.status(404).send({
+                status: false,
+                message: 'Email or Password is not valid',
+            });
 
-        const isUser = await usersModel.findOne({ email });
+        let token = jwt.sign(
+            {
+                userId: finduser._id.toString(),
+            },
+            "projectGroup69-3",
+            { expiresIn: '60m' }
+        );
+        res.setHeader('x-api-key', token);
 
-        if (!isUser) return res.status(404).send({ status: false, message: "User Not Register" });
-
-        if (isUser.password !== password) return res.status(401).send({ status: false, message: "Invalid Login Credentials" });
-
-        const token = jwt.sign({ _id: isUser._id }, "sourabhsubhamgauravhurshalltemsnameproject3", { expiresIn: "1d" });
-        
-        res.setHeader("x-api-key", token)    
-        return res.status(200).send({ status: true, message: "Login Successful", data: { token } });
-
-    } catch (error) { return res.status(500).send({ status: false, message: error.message }) }
+        jwt.verify(token, "projectGroup69-3", (err, result) => {
+            if (err) return res.status(400).send({ status: false, message: err })
+            else return res.status(200).send({ status: true, message: "user successfully login", token: token, result })
+        })
+        //return res.status(200).send({ status: true, message :"user successfully login", token: token });
+    } catch (err) {
+        return res.status(500).send({ status: false, message: err.message });
+    }
 
 }
 

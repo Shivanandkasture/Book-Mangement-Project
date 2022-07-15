@@ -1,0 +1,1 @@
+mongodb+srv://shivanandkasture:GrjERPPxK02MvUW6@cluster0.a35v6.mongodb.net/ShivanandKasture-DB?retryWrites=true&w=majority
