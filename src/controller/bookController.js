@@ -83,11 +83,11 @@ const createBooks = async (req, res) => {
             if (Object.keys(ab).length > 0) return res.status(400).send({ status: false, message: 'Cannot filter this Query' })
     
             if (category) {
-                if (!isValid(category)) return res.status(400).send({ status: false, message: 'Invalid Category' })
+                if (!validator.isValid(category)) return res.status(400).send({ status: false, message: 'Invalid Category' })
             }
     
             if (subcategory) {
-                if (!isValid(subcategory)) return res.status(400).send({ status: false, message: 'Invalid subcategory' })
+                if (!validator.isValid(subcategory)) return res.status(400).send({ status: false, message: 'Invalid subcategory' })
             }
     
             if (userId) {
@@ -105,24 +105,6 @@ const createBooks = async (req, res) => {
         } catch (err) {res.status(500).send({ status: false, message: err.message })}
     }
     
-    // GET BOOK DETAIL BY PATH PARAMS
-    const getBookbyparams = async (req, res) => {
-        try {
-    
-            const bookId = req.params.bookId;
-    
-            if (!mongoose.isValidObjectId(bookId)) return res.status(400).send({ status: false, message: "Please Enter valid BookId" });
-    
-            const bookDetails = await bookModel.findById(bookId);
-    
-            if (!bookDetails || (bookDetails.isDeleted === true)) return res.status(404).send({ status: false, message: "Book Details is Not Present in Our Database." });
-    
-            const reviews = await reviewsModel.find({ bookId, isDeleted: false });
-    
-            return res.status(200).send({ status: true, message: "Books Details", data: bookDetails, reviews });
-    
-        } catch (error) { return res.status(500).send({ status: false, message: error.message }) }
-    }
         //------------- Get Book By Id API's --------//
 
 const getBookById = async function (req, res) {
@@ -249,4 +231,3 @@ module.exports.getBooks = getBooks;
 module.exports.updateBooks = updateBooks;
 module.exports.deleteBybookId = deleteBybookId;
 module.exports.getBookById = getBookById;
-//module.exports.uploadBookCover = uploadBookCover;
