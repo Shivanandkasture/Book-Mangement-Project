@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const route = require('./routes/route.js');
 const { default: mongoose } = require('mongoose');
 const app = express();
+const multer = require("multer");
+const { AppConfig } = require('aws-sdk');
 
 app.use(bodyParser.json()); 
 
@@ -13,6 +15,7 @@ mongoose.connect("mongodb+srv://shivanishukla:anupam1985@cluster0.joqko.mongodb.
 .catch ( err => console.log(err) )
 
 app.use('/', route);
+app.use( multer().any())
 
 app.listen( 3000, function () {
     console.log('Express app running on port ' + (3000))

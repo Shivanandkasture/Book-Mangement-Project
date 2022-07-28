@@ -4,6 +4,9 @@ const userController = require("../controller/userController")
 const bookController = require("../controller/bookController")
 const reviewController = require("../controller/reviewController")
 const { authenticate, authorisation } = require("../middleware/auth");
+const uploadBookCover = require('../controller/bookController');
+
+
 
 //============================user api================================//
 router.post("/register", userController.createUser)
@@ -20,5 +23,6 @@ router.delete("/books/:bookId", authenticate, authorisation, bookController.dele
 router.post("/books/:bookId/review",  reviewController.createReview)
 router.delete("/books/:bookId/review/:reviewId", reviewController.deleteByreviewId)
 router.put("/books/:bookId/review/:reviewId",authenticate, reviewController.updateReview)
+//router.post("/uploadBookCover", uploadBookCover.uploadBookCover);
 
 module.exports = router;

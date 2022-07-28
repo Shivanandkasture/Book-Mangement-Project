@@ -114,7 +114,7 @@ const userLogin = async function (req, res) {
 
         jwt.verify(token, "projectGroup69-3", (err, result) => {
             if (err) return res.status(400).send({ status: false, message: err })
-            else return res.status(200).send({ status: true, message: "user successfully login", token: token, result })
+            else return res.status(200).send({ status: true, message: "user successfully login", token: token, userId:result.userId })
         })
         //return res.status(200).send({ status: true, message :"user successfully login", token: token });
     } catch (err) {

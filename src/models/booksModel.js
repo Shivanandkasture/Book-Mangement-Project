@@ -23,6 +23,7 @@ const bookSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false },
 
   releasedAt: { type: Date, required: true },
+  bookCover : {type :String}
 
 }, { timestamps: true });
 

@@ -3,9 +3,14 @@ const bookModel = require("../models/booksModel");
 const reviewModel = require("../models/reviewModel");
 const validator = require("../Validator/validation")
 const moment = require("moment")
-const userModel = require("../models/userModel")
+const userModel = require("../models/userModel");
+//const aws = require("aws-sdk")
+const { uploadFile } = require("../aws/uploadFile");
 
     // --------- create API's------//
+
+
+     
 
 const createBooks = async (req, res) => {
     try {
@@ -15,6 +20,11 @@ const createBooks = async (req, res) => {
            
         let { title, excerpt, userId, ISBN, category, subcategory, reviews, releasedAt } = req.body;
 
+        let uploadedFileURL;
+        let files= req.files
+        if(files && files.length>0){
+            uploadedFileURL = await uploadFile( files[0] )
+        }
         if (Object.keys(req.body).length == 0) return res.status(400).send({ status: false, message: "fill all fields" })
 
         if (!validator.isValid(title)) return res.status(400).send({ status: false, message: "title is required" })
@@ -51,7 +61,7 @@ const createBooks = async (req, res) => {
 
         const userid = await userModel.findById(req.body.userId);
         if (!userid) return res.status(400).send({ status: false, message: "no such userId present" })
-
+        req.body.bookCover = uploadedFileURL
         const bookData = await bookModel.create(req.body);
 
         return res.status(201).send({ status: true, message: 'Success', data: bookData })
@@ -61,41 +71,57 @@ const createBooks = async (req, res) => {
 
     }
 }
+
+
     //---------- Get API's -------//
 
     const getBooks = async function (req, res) {
         try {
-            const filterByQuery = { isDeleted: false }
-            const { userId, category, subcategory } = req.query;
+
+            let { userId, category, subcategory, ...ab } = req.query
     
-            if (userId || userId == "") {
-                if (!mongoose.Types.ObjectId.isValid(userId)) {
-                    return res.status(400).send({ status: false, message: "please give valid userId" })
-                } else filterByQuery["userId"] = userId;
-            }
-            if (category || category == "") {
-                if (!validator.isValid(category)) {
-                    return res.status(400).send({ status: false, message: "please enter valid category" })
-                }
-                filterByQuery["category"] = category;
-            }
-            if (subcategory || subcategory == "") {
-                if (!validator.isValid(subcategory)) {
-                    return res.status(400).send({ status: false, message: "please enter valid category" })
-                }
-                const subcategoryArr = subcategory.trim().split(",").map(subcategory => subcategory.trim())
-                filterByQuery["subcategory"] = subcategoryArr;
+            if (Object.keys(ab).length > 0) return res.status(400).send({ status: false, message: 'Cannot filter this Query' })
+    
+            if (category) {
+                if (!isValid(category)) return res.status(400).send({ status: false, message: 'Invalid Category' })
             }
     
-            const books = await bookModel.find({ filterByQuery, isDeleted: false }).select({ title: 1, excerpt: 1, userID: 1, category: 1, releasedAt: 1, reviews: 1 }).sort({ title: 1 });
+            if (subcategory) {
+                if (!isValid(subcategory)) return res.status(400).send({ status: false, message: 'Invalid subcategory' })
+            }
     
-            if (books.length == 0) return res.status(404).send({ status: false, message: "books not found" });
+            if (userId) {
+                if (!mongoose.isValidObjectId(userId)) return res.status(400).send({ status: false, msg: 'Please enter valid userId' })
+            }
     
-            return res.status(200).send({ status: true, message: "Books list", data: books })
-        }
-        catch (error) {
-            return res.status(500).send({ status: false, message: error.message });
-        }
+            const findBook = await bookModel.find({ $and: [req.query, { isDeleted: false }] }).select({ title: 1, excerpt: 1, userId: 1, category: 1, releasedAt: 1, reviews: 1 })
+    
+            findBook.sort((a,b)=>a.title.localeCompare(b.title))
+    
+            if (!findBook.length) return res.status(404).send({ status: false, message: 'Book is Not found' })
+    
+            return res.status(200).send({ status: false, message: 'All Book Successfull', data: findBook })
+    
+        } catch (err) {res.status(500).send({ status: false, message: err.message })}
+    }
+    
+    // GET BOOK DETAIL BY PATH PARAMS
+    const getBookbyparams = async (req, res) => {
+        try {
+    
+            const bookId = req.params.bookId;
+    
+            if (!mongoose.isValidObjectId(bookId)) return res.status(400).send({ status: false, message: "Please Enter valid BookId" });
+    
+            const bookDetails = await bookModel.findById(bookId);
+    
+            if (!bookDetails || (bookDetails.isDeleted === true)) return res.status(404).send({ status: false, message: "Book Details is Not Present in Our Database." });
+    
+            const reviews = await reviewsModel.find({ bookId, isDeleted: false });
+    
+            return res.status(200).send({ status: true, message: "Books Details", data: bookDetails, reviews });
+    
+        } catch (error) { return res.status(500).send({ status: false, message: error.message }) }
     }
         //------------- Get Book By Id API's --------//
 
@@ -223,3 +249,4 @@ module.exports.getBooks = getBooks;
 module.exports.updateBooks = updateBooks;
 module.exports.deleteBybookId = deleteBybookId;
 module.exports.getBookById = getBookById;
+//module.exports.uploadBookCover = uploadBookCover;
